@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import "./App.css";
+import {
+  getAllPokemon,
+  getPokemon,
+  getPokemonSpecies,
+} from "./util/pokemon.jsx";
 import Card from "./components/Card/Card";
-import { getAllPokemon } from "./util/pokemon.js";
-import { getPokemon } from "./util/pokemon.js";
 
 function App() {
   const initialURL = "https://pokeapi.co/api/v2/pokemon";
@@ -22,27 +24,39 @@ function App() {
 
   const loadPokemon = async (data) => {
     let _pokemonData = await Promise.all(
-      data.map((pokemon) => {
-        let pokemonRecord = getPokemon(pokemon.url);
-        return pokemonRecord;
+      data.map(async (pokemon) => {
+        // 各ポケモンの情報を取得
+        let pokemonRecord = await getPokemon(pokemon.url);
+        // さらに詳細なデータを取得
+        let species = await getPokemonSpecies(pokemonRecord.species.url);
+
+        // speciesの情報から日本語データのみを抽出
+        let japaneseData = {
+          name: species.names.find((name) => name.language.name === "ja").name,
+          // 他の必要な日本語データもここで抽出することができます
+        };
+
+        // 日本語データのみを使用したい場合、pokemonRecordではなくjapaneseDataを返す
+        return japaneseData;
       })
     );
     setPokemonData(_pokemonData);
   };
 
   return (
-    <div className="App">
-      {loading ? (
+    <div>
+      {console.log(pokemonData)}
+      {/* {loading ? (
         <h1>ロード中...</h1>
       ) : (
         <>
           <div className="pokemonCardContainer">
-            {pokemonData.map((pokemon, i) => {
-              return <Card key={i} pokemon={pokemon} />;
+            {pokemonData.map((pokemon) => {
+              return <Card key={pokemon.name} pokemon={pokemon} />;
             })}
           </div>
         </>
-      )}
+      )} */}
     </div>
   );
 }
